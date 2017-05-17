@@ -1241,9 +1241,8 @@ color
   overflow: hidden;
 }
 .article {
-  -moz-box-shadow: 5px 5px 5px #888;
-  -webkit-box-shadow: 5px 5px 5px #888;
-  box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 0 16px 38px -12px rgba(0,0,0,0.56), 0 4px 25px 0px rgba(0,0,0,0.12), 0 8px 10px -5px rgba(0,0,0,0.2);
+  box-shadow: 0 16px 38px -12px rgba(0,0,0,0.56), 0 4px 25px 0px rgba(0,0,0,0.12), 0 8px 10px -5px rgba(0,0,0,0.2);
   margin: 30px;
   margin-bottom: 5px;
   position: relative;
