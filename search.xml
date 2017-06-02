@@ -23,6 +23,7 @@
 <li>Access-Control-Allow-Headers</li>
 </ul>
 <p>站在安全角度，我们只需要关心<strong>Access-Control-Allow-Origin</strong>和<strong>Access-Control-Allow-Credentials</strong>字段，<br>前者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求”，后者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求的时候带上当前域cookie“</p>
+<p>未完待续…</p>
 ]]></content>
       
         <categories>
