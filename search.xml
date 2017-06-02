@@ -3,12 +3,26 @@
   
     
     <entry>
-      <title><![CDATA[「研究」CORS安全性分析]]></title>
+      <title><![CDATA[「研究」CORS安全解读]]></title>
       <url>/2017/05/25/CORS-security/</url>
-      <content type="html"><![CDATA[<p>CORS（跨来源资源共享）是一份浏览器技术的规范，提供了Web服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是JSONP模式的现代版。<br><a id="more"></a></p>
-<h3 id="CORS与JSONP"><a href="#CORS与JSONP" class="headerlink" title="CORS与JSONP"></a>CORS与JSONP</h3><p>我们都知道，在同源策略的限制下，我们是无法在hostA向hostB发松一个ajax请求的，但是由于业务需求，比如某些子域名之间会存在一些数据交互，怎么办呢。这时候，JSONP出现了，JSONP的原理很简单，可以理解为就是利用script标签加载了一段外部js。</p>
+      <content type="html"><![CDATA[<p><img src="/2017/05/25/CORS-security/69d158913d1bb11345e260f513482083.jpeg" alt=""><br>CORS（跨来源资源共享）是一份浏览器技术的规范，提供了Web服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是JSONP模式的现代版。<br><a id="more"></a></p>
+<h3 id="CORS与JSONP"><a href="#CORS与JSONP" class="headerlink" title="CORS与JSONP"></a>CORS与JSONP</h3><p>我们都知道，在同源策略的限制下，我们是无法在hostA向hostB发送一个ajax请求的，但是由于业务需求，比如某些子域名之间会存在一些数据交互，怎么办呢。这时候，JSONP出现了，JSONP的原理很简单，可以理解为就是利用script标签加载了一段外部js。</p>
 <p>script、img、iframe这些资源请求类型的标签都是不受同源策略所限制的，他们所发出的请求也不是ajax请求，通过这种“奇技淫巧”，就可以巧妙的进行跨域数据交互了。</p>
 <p>但是JSONP接口有个致命的缺点，那就是接口如果不进行来源检测的话，任何第三发都能获取到JSONP接口的数据，这是极其危险的。</p>
+<font color="red">这时，CORS出现了</font>
+
+<p>跨来源资源共享（CORS）是一份浏览器技术的规范，提供了 Web 服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是 JSONP 模式的现代版。与 JSONP 不同，CORS 除了 GET 要求方法以外也支持其他的 HTTP 要求。用 CORS 可以让网页设计师用一般的 XMLHttpRequest，这种方式的错误处理比 JSONP 要来的好。另一方面，JSONP 可以在不支持 CORS 的老旧浏览器上运作。现代的浏览器都支持 CORS。</p>
+<p>以上是我从维基百科抄来的，用人话说就是“<strong>浏览器给你ajax跨域请求的权限，在对方允许的前提下</strong>”</p>
+<h3 id="CORS的使用"><a href="#CORS的使用" class="headerlink" title="CORS的使用"></a>CORS的使用</h3><p>想要使用CORS，主要依赖以下response header头：</p>
+<ul>
+<li>Access-Control-Allow-Origin<font color="red">*</font></li>
+<li>Access-Control-Max-Age</li>
+<li>Access-Control-Max-Age</li>
+<li>Access-Control-Allow-Credentials<font color="red">*</font></li>
+<li>Access-Control-Allow-Methods</li>
+<li>Access-Control-Allow-Headers</li>
+</ul>
+<p>站在安全角度，我们只需要关心<strong>Access-Control-Allow-Origin</strong>和<strong>Access-Control-Allow-Credentials</strong>字段，<br>前者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求”，后者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求的时候带上当前域cookie“</p>
 ]]></content>
       
         <categories>
@@ -26,8 +40,8 @@
       <content type="html"><![CDATA[<p>想看哪个jar包的源码双击就能看到，方便至极 :)</p>
 <a id="more"></a>
 <h3 id="0x01-需要用到的工具-amp-jar包"><a href="#0x01-需要用到的工具-amp-jar包" class="headerlink" title="0x01 需要用到的工具&amp;jar包"></a>0x01 需要用到的工具&amp;jar包</h3><ul>
-<li><strong>jad.exe</strong>（<a href="http://Levi.cx/file/jad.exe">点我下载</a>）  </li>
-<li><strong>net.sf.jadclipse_3.3.0.jar</strong>（<a href="http://Levi.cx/file/net.sf.jadclipse_3.3.0.jar">点我下载</a>）  </li>
+<li><strong>jad.exe</strong>（<a href="http://levi-sec.com/file/jad.exe" target="_blank" rel="external">点我下载</a>）  </li>
+<li><strong>net.sf.jadclipse_3.3.0.jar</strong>（<a href="http://levi-sec.com/file/net.sf.jadclipse_3.3.0.jar" target="_blank" rel="external">点我下载</a>）  </li>
 </ul>
 <h3 id="0x02-安装"><a href="#0x02-安装" class="headerlink" title="0x02 安装"></a>0x02 安装</h3><p>”MyEclips安装步骤和Eclips安装步骤稍不一样,这里只讲Myeclips的安装步骤“</p>
 <ol>
@@ -39,7 +53,7 @@
 </li>
 <li><p>将net.sf.jadclipse_3.3.0.jar放到plugins目录下   </p>
 </li>
-<li><p>启动MyEclipse，进入window-&gt;Preferences-&gt;Java-&gt;JadClipse进行设置<br><img src="http://Levi.cx/img/MyEclipse.jpg" alt=""><br>上面的填jad.exe的路径，放哪填哪 随意，下面的是个生成反编译文件的临时目录，亦随意 </p>
+<li><p>启动MyEclipse，进入window-&gt;Preferences-&gt;Java-&gt;JadClipse进行设置<br><img src="http://levi-sec.com/img/MyEclipse.jpg" alt=""><br>上面的填jad.exe的路径，放哪填哪 随意，下面的是个生成反编译文件的临时目录，亦随意 </p>
 </li>
 </ol>
 <h3 id="0x03-结束"><a href="#0x03-结束" class="headerlink" title="0x03 结束"></a>0x03 结束</h3><p>大功告成，现在如果想看哪个jar包哪个类的源代码直接双击就可以看到，而无需繁琐的手动反编译</p>
