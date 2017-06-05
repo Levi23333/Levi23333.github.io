@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="lEvi's blog">
 <meta property="og:description" content="CORS（跨来源资源共享）是一份浏览器技术的规范，提供了Web服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是JSONP模式的现代版。">
 <meta property="og:image" content="http://Levi.cx/2017/05/25/CORS-security/69d158913d1bb11345e260f513482083.jpeg">
-<meta property="og:updated_time" content="2017-06-02T02:47:42.000Z">
+<meta property="og:updated_time" content="2017-06-02T14:53:50.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="「研究」CORS安全解读">
 <meta name="twitter:description" content="CORS（跨来源资源共享）是一份浏览器技术的规范，提供了Web服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是JSONP模式的现代版。">
@@ -323,7 +323,7 @@
         <p><img src="/2017/05/25/CORS-security/69d158913d1bb11345e260f513482083.jpeg" alt=""><br>CORS（跨来源资源共享）是一份浏览器技术的规范，提供了Web服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是JSONP模式的现代版。<br><a id="more"></a></p>
 <h3 id="CORS与JSONP"><a href="#CORS与JSONP" class="headerlink" title="CORS与JSONP"></a>CORS与JSONP</h3><p>我们都知道，在同源策略的限制下，我们是无法在hostA向hostB发送一个ajax请求的，但是由于业务需求，比如某些子域名之间会存在一些数据交互，怎么办呢。这时候，JSONP出现了，JSONP的原理很简单，可以理解为就是利用script标签加载了一段外部js。</p>
 <p>script、img、iframe这些资源请求类型的标签都是不受同源策略所限制的，他们所发出的请求也不是ajax请求，通过这种“奇技淫巧”，就可以巧妙的进行跨域数据交互了。</p>
-<p>但是JSONP接口有个致命的缺点，那就是接口如果不进行来源检测的话，任何第三发都能获取到JSONP接口的数据，这是极其危险的。</p>
+<p>但是JSONP接口有个致命的缺点，那就是接口如果不进行来源检测的话，任何第三发都能获取到JSONP接口的数据，就出现了所谓的jsonp劫持漏洞，这是极其危险的。</p>
 <font color="red">这时，CORS出现了</font>
 
 <p>跨来源资源共享（CORS）是一份浏览器技术的规范，提供了 Web 服务从不同网域传来沙盒脚本的方法，以避开浏览器的同源策略，是 JSONP 模式的现代版。与 JSONP 不同，CORS 除了 GET 要求方法以外也支持其他的 HTTP 要求。用 CORS 可以让网页设计师用一般的 XMLHttpRequest，这种方式的错误处理比 JSONP 要来的好。另一方面，JSONP 可以在不支持 CORS 的老旧浏览器上运作。现代的浏览器都支持 CORS。</p>
@@ -337,8 +337,7 @@
 <li>Access-Control-Allow-Methods</li>
 <li>Access-Control-Allow-Headers</li>
 </ul>
-<p>站在安全角度，我们只需要关心<strong>Access-Control-Allow-Origin</strong>和<strong>Access-Control-Allow-Credentials</strong>字段，<br>前者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求”，后者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求的时候带上当前域cookie“</p>
-<p>未完待续…</p>
+<p>站在安全角度，我们只需要关心<strong>Access-Control-Allow-Origin</strong>和<strong>Access-Control-Allow-Credentials</strong>字段<br>前者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求”，后者负责告诉浏览器：“我允许别的网站对我进行ajax跨域请求的时候带上当前域cookie“</p>
 
       
     </div>
@@ -350,7 +349,7 @@
         <p><span>本文标题:</span><a href="/2017/05/25/CORS-security/">「研究」CORS安全解读</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">lEvi</a></p>
         <p><span>发布时间:</span>2017-05-25, 01:16:22</p>
-        <p><span>最后更新:</span>2017-06-02, 10:47:42</p>
+        <p><span>最后更新:</span>2017-06-02, 22:53:50</p>
         <p>
             <span>原始链接:</span><a class="post-url" href="/2017/05/25/CORS-security/" title="「研究」CORS安全解读">http://Levi.cx/2017/05/25/CORS-security/</a>
             <span class="copy-path" data-clipboard-text="原文: http://Levi.cx/2017/05/25/CORS-security/　　作者: lEvi" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
@@ -497,9 +496,13 @@
         $(document).ready(function() {
             var iPad = window.navigator.userAgent.indexOf('iPad');
             if (iPad > -1 || $(".left-col").css("display") === "none") {
-                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
-                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
-                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+                // var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                // var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                // $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+                var backgroundnum = 1;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+
             }
             else {
                 var backgroundnum = 1;
